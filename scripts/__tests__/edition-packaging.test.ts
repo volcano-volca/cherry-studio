@@ -87,10 +87,10 @@ describe('edition packaging', () => {
       publish: config.publish,
       windowsArtifactName: config.win.artifactName
     }).toEqual({
-      appId: 'com.kangfenmao.CherryStudio',
+      appId: 'com.bimhu.chat',
       edition: GLOBAL_EDITION,
-      nsisGuid: '41a4ccd8-bcc0-5710-9eee-0e164da68057',
-      productName: 'Cherry Studio',
+      nsisGuid: 'e79cf34d-03f8-445c-819b-50765f40d4fb',
+      productName: 'BimhuChat',
       protocol: 'cherrystudio',
       publish: { provider: 'generic', url: 'https://releases.cherry-ai.com' },
       windowsArtifactName: '${productName}-${version}-${arch}-setup.${ext}'
@@ -104,7 +104,7 @@ describe('edition packaging', () => {
 
     expect(config).toEqual({
       extends: './electron-builder.yml',
-      appId: 'com.cherryai.cherrystudio.cn',
+      appId: 'com.bimhu.chat.cn',
       extraMetadata: {
         cherryEdition: CHINA_EDITION
       },
@@ -118,8 +118,8 @@ describe('edition packaging', () => {
     })
     const chinaPackageMetadata = { ...packageMetadata, ...config.extraMetadata }
 
-    expect(packageMetadata.productName ?? packageMetadata.name).toBe('CherryStudio')
-    expect(chinaPackageMetadata.productName ?? chinaPackageMetadata.name).toBe('CherryStudio')
+    expect(packageMetadata.productName ?? packageMetadata.name).toBe('bimhuchat')
+    expect(chinaPackageMetadata.productName ?? chinaPackageMetadata.name).toBe('bimhuchat')
   })
 
   it.each([
@@ -136,26 +136,26 @@ describe('edition packaging', () => {
       getExpectedReleaseArtifacts({
         edition: CHINA_EDITION,
         platform: 'linux',
-        productName: 'Cherry Studio',
+        productName: 'BimhuChat',
         version: '2.1.0-rc.1'
       })
     ).toEqual({
       files: [
-        'Cherry-Studio-CN-2.1.0-rc.1-linux-x64.AppImage',
-        'Cherry-Studio-CN-2.1.0-rc.1-linux-x64.deb',
-        'Cherry-Studio-CN-2.1.0-rc.1-linux-x64.rpm',
-        'Cherry-Studio-CN-2.1.0-rc.1-linux-arm64.AppImage',
-        'Cherry-Studio-CN-2.1.0-rc.1-linux-arm64.deb',
-        'Cherry-Studio-CN-2.1.0-rc.1-linux-arm64.rpm'
+        'BimhuChat-2.1.0-rc.1-linux-x64.AppImage',
+        'BimhuChat-2.1.0-rc.1-linux-x64.deb',
+        'BimhuChat-2.1.0-rc.1-linux-x64.rpm',
+        'BimhuChat-2.1.0-rc.1-linux-arm64.AppImage',
+        'BimhuChat-2.1.0-rc.1-linux-arm64.deb',
+        'BimhuChat-2.1.0-rc.1-linux-arm64.rpm'
       ],
       manifests: [
         {
           file: 'rc-cn-linux.yml',
-          urls: ['Cherry-Studio-CN-2.1.0-rc.1-linux-x64.AppImage']
+          urls: ['BimhuChat-2.1.0-rc.1-linux-x64.AppImage']
         },
         {
           file: 'rc-cn-linux-arm64.yml',
-          urls: ['Cherry-Studio-CN-2.1.0-rc.1-linux-arm64.AppImage']
+          urls: ['BimhuChat-2.1.0-rc.1-linux-arm64.AppImage']
         }
       ]
     })
@@ -166,16 +166,16 @@ describe('edition packaging', () => {
       getExpectedReleaseArtifacts({
         edition: CHINA_EDITION,
         platform: 'mac',
-        productName: 'Cherry Studio',
+        productName: 'BimhuChat',
         version: '2.1.0'
       }).files
     ).toEqual([
-      'Cherry-Studio-CN-2.1.0-mac-x64.zip',
-      'Cherry-Studio-CN-2.1.0-mac-x64.zip.blockmap',
-      'Cherry-Studio-CN-2.1.0-mac-arm64.zip',
-      'Cherry-Studio-CN-2.1.0-mac-arm64.zip.blockmap',
-      'Cherry-Studio-CN-2.1.0-mac-x64.dmg',
-      'Cherry-Studio-CN-2.1.0-mac-arm64.dmg'
+      'BimhuChat-2.1.0-mac-x64.zip',
+      'BimhuChat-2.1.0-mac-x64.zip.blockmap',
+      'BimhuChat-2.1.0-mac-arm64.zip',
+      'BimhuChat-2.1.0-mac-arm64.zip.blockmap',
+      'BimhuChat-2.1.0-mac-x64.dmg',
+      'BimhuChat-2.1.0-mac-arm64.dmg'
     ])
   })
 })

@@ -23,7 +23,8 @@ function getReleaseChannel(version, edition) {
 
 function getReleaseProductName(productName, edition) {
   assertEdition(edition)
-  return edition === CHINA_EDITION ? 'Cherry Studio CN' : productName
+  // BimhuChat fork: both editions ship under the fork's own product name.
+  return productName
 }
 
 function getReleaseDownloadGroups({ edition, platform, productName, version }) {

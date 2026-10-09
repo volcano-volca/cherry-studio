@@ -48,11 +48,15 @@ function main() {
   }
 
   const packageMetadata = require('../../package.json')
+  // BimhuChat fork: productName comes from electron-builder.yml (rebranded),
+  // not the upstream hardcoded 'Cherry Studio'.
+  const builderConfig = parse(fs.readFileSync(path.resolve('electron-builder.yml'), 'utf8'))
+  const productName = builderConfig.productName || 'Cherry Studio'
   validateEditionArtifacts({
     distDirectory: path.resolve('dist'),
     edition,
     platform,
-    productName: 'Cherry Studio',
+    productName,
     version: packageMetadata.version
   })
   console.log(`Validated ${edition} ${platform} release artifacts`)
