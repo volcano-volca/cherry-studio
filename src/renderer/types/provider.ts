@@ -151,8 +151,6 @@ export type Provider = {
 export { isSystemProviderId, SystemProviderIds, SystemProviderIdSchema }
 export type { SystemProviderId }
 
-type SystemProviderIdTypeMap = typeof SystemProviderIds
-
 export type SystemProvider = Provider & {
   id: SystemProviderId
   isSystem: true
@@ -182,15 +180,3 @@ export const isSystemProvider = (provider: Provider): provider is SystemProvider
   return isSystemProviderId(provider.id) && !!provider.isSystem
 }
 
-export type GroqSystemProvider = Provider & {
-  id: SystemProviderIdTypeMap['groq']
-  isSystem: true
-}
-
-export type NotGroqProvider = Provider & {
-  id: Exclude<string, SystemProviderIdTypeMap['groq']>
-}
-
-export const isGroqSystemProvider = (provider: Provider): provider is GroqSystemProvider => {
-  return provider.id === SystemProviderIds.groq
-}
