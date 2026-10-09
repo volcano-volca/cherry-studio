@@ -19,7 +19,6 @@ import type { VoyageProviderSettings } from 'voyage-ai-provider'
 
 import { ProviderExtension, type ProviderExtensionConfig } from '@cherrystudio/ai-core/provider'
 import { LOCAL_EMBEDDING_PROVIDER_ID } from '@shared/data/presets/localEmbedding'
-import { SystemProviderIds } from '@shared/utils/systemProviderId'
 
 import type { AihubmixProviderSettings } from './custom/aihubmix/aihubmixProvider'
 import type { ComfyuiProvider, ComfyuiProviderSettings } from './custom/comfyui/comfyuiProvider'
@@ -278,7 +277,6 @@ export const NewApiExtension = ProviderExtension.create({
 
 export const TogetherAIExtension = ProviderExtension.create({
   name: 'togetherai',
-  aliases: [SystemProviderIds.together] as const,
   supportsImageGeneration: true,
   create: async (settings) => (await import('@ai-sdk/togetherai')).createTogetherAI(settings)
 } as const satisfies ProviderExtensionConfig<TogetherAIProviderSettings, ProviderV3, 'togetherai'>)
@@ -389,7 +387,6 @@ export const TokenhubExtension = ProviderExtension.create({
  */
 export const VoyageExtension = ProviderExtension.create({
   name: 'voyage',
-  aliases: [SystemProviderIds.voyageai] as const,
   supportsImageGeneration: false,
   create: async (settings) => (await import('voyage-ai-provider')).createVoyage(settings)
 } as const satisfies ProviderExtensionConfig<VoyageProviderSettings, ProviderV3, 'voyage'>)

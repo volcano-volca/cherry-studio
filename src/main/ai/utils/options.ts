@@ -14,7 +14,6 @@ import type { Provider } from '@shared/data/types/provider'
 import { type AiSdkParam, isAiSdkParam } from '@shared/types/aiSdk'
 import { isReasoningModel } from '@shared/utils/model'
 import { isSupportFastMode } from '@shared/utils/provider'
-import { SystemProviderIds } from '@shared/utils/systemProviderId'
 
 import type { AppProviderId } from '../types'
 import type { ProviderCapabilities } from '../types'
@@ -79,16 +78,11 @@ export function applyServiceTierToProviderOptions<T extends ProviderOptions>(
   }
 }
 
-function shouldNormalizeOpenAICompatibleReasoning(
-  providerId: AppProviderId,
-  endpointType: EndpointType | undefined
-): boolean {
+function shouldNormalizeOpenAICompatibleReasoning(providerId: AppProviderId): boolean {
   return (
     providerId === 'openai-compatible' ||
     providerId === 'github-copilot-openai-compatible' ||
-    providerId === 'google-vertex-maas' ||
-    (endpointType === ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS &&
-      (providerId === 'aihubmix' || providerId === SystemProviderIds.dmxapi))
+    providerId === 'google-vertex-maas'
   )
 }
 
@@ -129,7 +123,7 @@ export function buildCapabilityProviderOptions(
         providerId: rawProviderId === 'openai-compatible' ? actualProvider.id : providerOptionsKey,
         options: {}
       }
-  const reasoningOptions = shouldNormalizeOpenAICompatibleReasoning(rawProviderId, context.endpointType)
+  const reasoningOptions = shouldNormalizeOpenAICompatibleReasoning(rawProviderId)
     ? { ...resolvedReasoningOptions, options: normalizeOpenAICompatibleParams(resolvedReasoningOptions.options) }
     : resolvedReasoningOptions
 
@@ -166,15 +160,10 @@ export function buildCapabilityProviderOptions(
     case 'bedrock':
       providerSpecificOptions = buildBedrockProviderOptions(model, reasoningOptions.options)
       break
-    case SystemProviderIds.ollama:
-      providerSpecificOptions = buildOllamaProviderOptions(model, reasoningOptions.options)
-      break
     case 'cherryin':
     case 'cherryin-chat':
     case 'newapi':
     case 'aihubmix':
-    case SystemProviderIds.dmxapi:
-    case SystemProviderIds.gateway:
       providerSpecificOptions = buildAIGatewayOptions(
         model,
         capabilities,
@@ -221,7 +210,7 @@ export function buildResolvedReasoningProviderOptions(context: {
   reasoning: ResolvedReasoningInvocation
 }): Record<string, Record<string, unknown>> {
   const encoded = encodeReasoningOptions(context.providerOptionsKey, context.reasoning)
-  const options = shouldNormalizeOpenAICompatibleReasoning(context.aiSdkProviderId, context.endpointType)
+  const options = shouldNormalizeOpenAICompatibleReasoning(context.aiSdkProviderId)
     ? normalizeOpenAICompatibleParams(encoded.options)
     : encoded.options
   if (Object.keys(options).length === 0) return {}
@@ -285,21 +274,11 @@ export function mergeCustomProviderParameters(
         }
       }
     } else if (key === rawProviderId && !actualAiSdkProviderIds.includes(rawProviderId)) {
-      if (key === SystemProviderIds.gateway) {
-        result = {
-          ...result,
-          [key]: {
-            ...result[key],
-            ...value
-          }
-        }
-      } else {
-        result = {
-          ...result,
-          [primaryAiSdkProviderId]: {
-            ...result[primaryAiSdkProviderId],
-            ...value
-          }
+      result = {
+        ...result,
+        [primaryAiSdkProviderId]: {
+          ...result[primaryAiSdkProviderId],
+          ...value
         }
       }
     } else {
@@ -418,20 +397,6 @@ function buildBedrockProviderOptions(
   return { bedrock: providerOptions }
 }
 
-function buildOllamaProviderOptions(
-  model: Model,
-  reasoningOptions: Record<string, unknown>
-): Record<string, Record<string, unknown>> {
-  return {
-    ollama: {
-      ...reasoningOptions,
-      // Forward the model's context window so large-context models are not silently
-      // truncated. Omitting it is deliberate when unknown: Ollama then sizes by available
-      // VRAM (4k / 32k / 256k), which beats any fixed guess we could substitute.
-      ...(model.contextWindow ? { options: { num_ctx: model.contextWindow } } : {})
-    }
-  }
-}
 
 function buildGenericProviderOptions(
   providerId: string,

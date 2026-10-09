@@ -26,7 +26,6 @@ import {
   isSupportedThinkingTokenModel
 } from '@shared/utils/model'
 import { isAIGatewayProvider, type WebToolRoutes } from '@shared/utils/provider'
-import { SystemProviderIds } from '@shared/utils/systemProviderId'
 
 import type { KimiFormulaCredentials } from '../../../provider/custom/moonshotProvider'
 import { getAiSdkProviderId } from '../../../provider/factory'
@@ -106,7 +105,7 @@ export function resolveCapabilities(
         provider,
         options.serving
       )
-    } else if (isAIGatewayProvider(provider) || provider.id === SystemProviderIds.gateway) {
+    } else if (isAIGatewayProvider(provider)) {
       const gatewayProviderId = mapVertexAIGatewayModelToProviderId(model)
       if (gatewayProviderId) {
         webSearchPluginConfig = buildProviderBuiltinWebSearchConfig(

@@ -34,8 +34,7 @@ import type { ApiKeyEntry, Provider } from '@shared/data/types/provider'
 import { formatApiHost, withoutTrailingApiVersion } from '@shared/utils/api'
 import { formatGatewayModelId } from '@shared/utils/apiGateway'
 import { getRawModelId } from '@shared/utils/model'
-import { isLoginBasedProvider, matchesPreset, resolveEndpointDialect } from '@shared/utils/provider'
-import { SystemProviderIds } from '@shared/utils/systemProviderId'
+import { isLoginBasedProvider, resolveEndpointDialect } from '@shared/utils/provider'
 
 import { resolveEffectiveEndpoint } from '../../provider/endpoint'
 import { getProviderTransportAdapter, type ProviderTransportAdapter } from '../../provider/runtimeTransport'
@@ -332,13 +331,6 @@ export async function resolvePiProviderInjectionForSession(
 ): Promise<PiProviderInjection> {
   if (!usesPiGateway(provider)) {
     const injection = resolvePiProviderInjectionFromSnapshot(provider, model, enabledApiKeys)
-    const headers = injection.providerConfig.headers
-    if (
-      matchesPreset(provider, SystemProviderIds.opencode) &&
-      !Object.keys(headers ?? {}).some((name) => name.toLowerCase() === 'x-opencode-session')
-    ) {
-      injection.providerConfig.headers = { ...headers, ...toPiHeaders({ 'x-opencode-session': sessionId }) }
-    }
     return injection
   }
 

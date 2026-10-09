@@ -23,8 +23,7 @@ import type { ReasoningEffortOption } from '@shared/types/aiSdk'
 import { formatApiHost, withoutTrailingApiVersion } from '@shared/utils/api'
 import { formatGatewayModelId } from '@shared/utils/apiGateway'
 import { getRawModelId, isGatewayRoutableModel, isReasoningModel, isVisionModel } from '@shared/utils/model'
-import { isLoginBasedProvider, matchesPreset } from '@shared/utils/provider'
-import { SystemProviderIds } from '@shared/utils/systemProviderId'
+import { isLoginBasedProvider } from '@shared/utils/provider'
 
 import { resolveEffectiveEndpoint } from '../../provider/endpoint'
 import { ApiGatewayNotRunningError, requiresAgentGateway, resolveApiGatewayRuntime } from '../agentApiGateway'
@@ -334,13 +333,6 @@ export async function resolveDshProviderInjectionFromSnapshot(
     resolvedApiKey.apiKeySelection,
     reasoningEffort
   )
-  // OpenCode Go/Zen reject requests without this header; a header the operator set wins.
-  if (
-    matchesPreset(provider, SystemProviderIds.opencode) &&
-    !Object.keys(injection.headers ?? {}).some((name) => name.toLowerCase() === 'x-opencode-session')
-  ) {
-    injection.headers = { ...injection.headers, 'x-opencode-session': sessionId }
-  }
   return injection
 }
 

@@ -170,12 +170,12 @@ describe('RegistryLoader.findModel — size-preserving catalog matches', () => {
     expect(loader.findModel('nvidia/gpt-oss-20b')?.id).toBe('gpt-oss-20b')
   })
 
-  it('resolves the CherryIN Qwen 3.5 9B metadata for the provider model id', () => {
+  it('resolves the DashScope qwen-image metadata for the provider model id', () => {
     const loader = realCatalogLoader()
-    const override = loader.findOverride('cherryin', 'qwen/qwen3.5-9b')
+    const override = loader.findOverride('dashscope', 'qwen-image-3.0')
 
-    expect(override).toMatchObject({ apiModelId: 'qwen/qwen3.5-9b', modelId: 'qwen3-5-9b' })
-    expect(loader.findModel(override?.modelId ?? '')?.id).toBe('qwen3-5-9b')
+    expect(override).toMatchObject({ apiModelId: 'qwen-image-3.0', modelId: 'qwen-image-3-0' })
+    expect(loader.findModel(override?.modelId ?? '')?.id).toBe('qwen-image-3-0')
   })
 
   it('returns null when no size-specific catalog row exists', () => {

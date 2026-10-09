@@ -1,6 +1,5 @@
 import { net } from 'electron'
 
-import { SystemProviderIds } from '@shared/utils/systemProviderId'
 
 import { ApiKeysResponseSchema, CHERRYIN_CONFIG, validateCherryInApiHost } from '../../CherryInOAuthConfig'
 import { OAuthServiceError } from '../../errors'
@@ -47,7 +46,7 @@ async function fetchCherryInApiKeys(accessToken: string, apiHost: string): Promi
 }
 
 export const cherryInOAuthProvider = {
-  providerId: SystemProviderIds.cherryin,
+  providerId: 'cherryin',
   clientId: CHERRYIN_CONFIG.CLIENT_ID,
   transport: {
     hosts: ['127.0.0.1'],

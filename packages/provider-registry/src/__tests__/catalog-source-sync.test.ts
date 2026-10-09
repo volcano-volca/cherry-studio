@@ -76,15 +76,15 @@ const overrideIdentity = (o: { providerId: string; modelId: string; apiModelId?:
   `${o.providerId}|${o.modelId}|${o.apiModelId ?? ''}|${(o.modelVariants ?? []).slice().sort().join(',')}`
 
 describe('catalog ↔ source sync (regenerate guard)', () => {
-  it('keeps Bimhu in the first slot and AMD GPU Cloud in the twenty-first slot used to seed new profiles', () => {
+  it('keeps Bimhu in the first slot and DashScope in the second slot used to seed new profiles', () => {
     expect(PROVIDERS[0]?.id).toBe('bimhu')
     expect(providers[0]?.id).toBe('bimhu')
-    expect(PROVIDERS[20]?.id).toBe('radeon-cloud')
-    expect(providers[20]?.id).toBe('radeon-cloud')
+    expect(PROVIDERS[1]?.id).toBe('dashscope')
+    expect(providers[1]?.id).toBe('dashscope')
   })
 
-  it('makes CherryIN available in the China edition', () => {
-    expect(PROVIDERS.find((provider) => provider.id === 'cherryin')?.availableInEditions).toContain('cn')
+  it('makes DashScope available in the China edition', () => {
+    expect(PROVIDERS.find((provider) => provider.id === 'dashscope')?.availableInEditions).toContain('cn')
   })
 
   it('classifies every source provider by supported application edition', () => {

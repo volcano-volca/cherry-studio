@@ -76,6 +76,6 @@ export function buildCherryCloudProviderConfig(
   return {
     providerId: 'openai-compatible',
     endpoint,
-    providerSettings: { ...providerSettings, name: CHERRY_CLOUD_PROVIDER_ID, includeUsage: true }
+    providerSettings: { ...providerSettings, name: CHERRY_CLOUD_PROVIDER_ID, includeUsage: true } as Record<string, unknown>
   }
 }

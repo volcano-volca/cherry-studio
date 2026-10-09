@@ -5,7 +5,6 @@ import type { OAuthAccount, OAuthRuntimeProviderContext } from '@main/services/o
 import { IpcError } from '@shared/ipc/errors/IpcError'
 import { oauthErrorCodes } from '@shared/ipc/errors/oauth'
 import type { WindowId } from '@shared/ipc/types'
-import type { SystemProviderIds } from '@shared/utils/systemProviderId'
 
 export async function mapOAuthSignInCancellation<T>(request: Promise<T>): Promise<T> {
   try {
@@ -20,7 +19,7 @@ export async function mapOAuthSignInCancellation<T>(request: Promise<T>): Promis
 
 export function runOAuthSignIn(
   senderId: WindowId | null,
-  providerId: typeof SystemProviderIds.cherryin,
+  providerId: 'cherryin',
   requestId: string,
   context?: CherryInOAuthContext
 ): Promise<CherryInSignInResult>

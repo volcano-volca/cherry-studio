@@ -1,11 +1,8 @@
 import { providerRegistryService } from '@data/services/ProviderRegistryService'
 import { providerService } from '@data/services/ProviderService'
-import { TOKEN_DANCE_APP_URL } from '@main/ai/provider/constants'
 import { defaultAppHeaders, mergeHeaders } from '@main/utils/http'
 import { ENDPOINT_TYPE, type EndpointType } from '@shared/data/types/model'
 import type { Provider } from '@shared/data/types/provider'
-import { matchesPreset } from '@shared/utils/provider'
-import { SystemProviderIds } from '@shared/utils/systemProviderId'
 
 const ENDPOINT_FALLBACK_ORDER: readonly EndpointType[] = [
   ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS,
@@ -48,23 +45,8 @@ export function getBaseUrl(provider: Provider, preferredEndpoint?: EndpointType 
 
 export function getExtraHeaders(provider: Provider): Record<string, string> {
   const headers = { ...provider.settings?.extraHeaders }
-  const isTokenDance = matchesPreset(provider, SystemProviderIds.tokendance)
-  const isRadeonCloud = matchesPreset(provider, SystemProviderIds['radeon-cloud'])
-  const isPerplexity = matchesPreset(provider, SystemProviderIds.perplexity)
-  const hasPerplexityIntegration = Object.keys(headers).some((name) => name.toLowerCase() === 'x-pplx-integration')
 
-  for (const name of Object.keys(headers)) {
-    const normalizedName = name.toLowerCase()
-    if ((isTokenDance && normalizedName === 'x-app-url') || (isRadeonCloud && normalizedName === 'x-source')) {
-      delete headers[name]
-    }
-  }
-  return {
-    ...(isPerplexity && !hasPerplexityIntegration ? { 'X-Pplx-Integration': 'cherry-studio' } : {}),
-    ...headers,
-    ...(isTokenDance ? { 'X-App-URL': TOKEN_DANCE_APP_URL } : {}),
-    ...(isRadeonCloud ? { 'X-Source': 'cherry-studio' } : {})
-  }
+  return { ...headers }
 }
 
 /**

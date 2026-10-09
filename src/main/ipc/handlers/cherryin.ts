@@ -2,13 +2,12 @@ import { cherryInOAuthService } from '@main/services/oauth/CherryInOAuthService'
 import { OAuthServiceError } from '@main/services/oauth/errors'
 import type { cherryinRequestSchemas } from '@shared/ipc/schemas/cherryin'
 import type { IpcHandlersFor } from '@shared/ipc/types'
-import { SystemProviderIds } from '@shared/utils/systemProviderId'
 
 import { runOAuthSignIn } from './oauthSignIn'
 
 export const cherryinHandlers: IpcHandlersFor<typeof cherryinRequestSchemas> = {
   'cherryin.sign_in': async ({ requestId, oauthServer, apiHost }, ctx) => {
-    const { apiKeys } = await runOAuthSignIn(ctx.senderId, SystemProviderIds.cherryin, requestId, {
+    const { apiKeys } = await runOAuthSignIn(ctx.senderId, 'cherryin', requestId, {
       oauthServer,
       apiHost
     })

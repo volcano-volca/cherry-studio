@@ -7,11 +7,9 @@
 import { isEmpty } from 'es-toolkit/compat'
 
 import { application } from '@application'
-import { formatPrivateKey, hasProviderConfig, type StringKeys } from '@cherrystudio/ai-core/provider'
+import { hasProviderConfig, type StringKeys } from '@cherrystudio/ai-core/provider'
 import type { CherryInProviderSettings } from '@cherrystudio/ai-sdk-provider'
 import { providerService, type ResolvedProviderApiKey } from '@main/data/services/ProviderService'
-import { copilotService } from '@main/services/CopilotService'
-import { mergeHeaders } from '@main/utils/http'
 import { CHERRYAI_PROVIDER_ID, isManagedCherryCloudModel } from '@shared/data/presets/cherryai'
 import { OPENAI_CODEX_PROVIDER_ID } from '@shared/data/presets/codex'
 import { GROK_CLI_PROVIDER_ID } from '@shared/data/presets/grokCli'
@@ -26,7 +24,6 @@ import {
   isWithTrailingSharp,
   withoutTrailingApiVersion
 } from '@shared/utils/api'
-import { isGenerateImageModel } from '@shared/utils/model'
 import {
   isAzureOpenAIProvider,
   isGeminiProvider,
@@ -44,23 +41,15 @@ import {
   getBaseUrl,
   getExtraHeaders,
   getProviderAppHeaders,
-  headersWithoutCredentials,
   routeToEndpoint
 } from '../utils/provider'
-import { normalizeArkResponsesResponse, stripArkUnsupportedIncludes } from './ark'
 import { generateSignature } from './cherryai'
 import { buildCherryCloudProviderConfig } from './cherryCloud'
 import { buildCodexRequestHeaders, coerceCodexRequestBody } from './codex'
-import { COPILOT_DEFAULT_HEADERS } from './constants'
 import type { ServingAuthMethod, ServingCredentialReceipt } from './credential'
-import { normalizeComfyuiBaseUrl } from './custom/comfyui/comfyuiHttp'
 import { appendDashScopeWebExtractor } from './custom/dashscope/dashscopeWebExtractor'
-import { dmxapiUsesCustomTransport } from './custom/dmxapi/dmxapiImageRouting'
 import { resolveAiSdkProviderId, type ResolvedEndpoint, resolveEffectiveEndpoint } from './endpoint'
 import { buildGrokCliRequestHeaders, rewriteGrokCliResponsesBody } from './grokCli'
-import { transformLmStudioRequestBody } from './lmstudio'
-import { isVertexMaasModelId, normalizeVertexCredentials } from './vertex'
-import { transformZhipuRequestBody } from './zhipuWebSearch'
 
 interface BaseConfig {
   baseURL: string
@@ -125,16 +114,6 @@ function formatBaseURL(baseURL: string, provider: Provider, endpointType?: Endpo
 
   return formatApiHost(baseURL, appendApiVersion)
 }
-
-/** Presets whose IMAGE models route to the extension provider's own transport (see the builder). */
-const IMAGE_EXTENSION_PRESETS = [
-  SystemProviderIds.modelscope,
-  SystemProviderIds.ppio,
-  SystemProviderIds.silicon,
-  SystemProviderIds.doubao,
-  SystemProviderIds.dmxapi,
-  SystemProviderIds.tokenhub
-] as const
 
 // ── SDK Config Building ──
 
@@ -204,7 +183,6 @@ export async function resolveProviderAiSdkConfig(
 
   const formattedBaseUrl = formatBaseURL(baseUrl, provider, endpointType)
   const { baseURL, endpoint } = routeToEndpoint(formattedBaseUrl)
-  const imageExtensionPreset = IMAGE_EXTENSION_PRESETS.find((preset) => matchesPreset(provider, preset))
 
   const ctx: BuilderContext = {
     actualProvider: provider,
@@ -221,11 +199,6 @@ export async function resolveProviderAiSdkConfig(
   }
 
   const builders: ConfigBuilderEntry[] = [
-    { match: (p) => p.id === SystemProviderIds.copilot, build: withProviderAuth('oauth', buildCopilotConfig) },
-    {
-      match: (p) => matchesPreset(p, SystemProviderIds.opencode),
-      build: withSelectedApiKey(buildOpenCodeGoConfig)
-    },
     { match: (p) => p.id === OPENAI_CODEX_PROVIDER_ID, build: withProviderAuth('oauth', buildCodexConfig) },
     { match: (p) => p.id === GROK_CLI_PROVIDER_ID, build: withProviderAuth('oauth', buildGrokCliConfig) },
     {
@@ -247,73 +220,12 @@ export async function resolveProviderAiSdkConfig(
       }))
     },
     { match: (p) => isOllamaProvider(p), build: withSelectedApiKey(buildOllamaConfig) },
-    // ComfyUI has no OpenAI fallback or credential, so its builder bypasses both.
-    { match: (p) => matchesPreset(p, SystemProviderIds.comfyui), build: withoutCredential(buildComfyuiConfig) },
     { match: (p) => isAzureOpenAIProvider(p), build: withSelectedApiKey(buildAzureConfig) },
     // DashScope chat is OpenAI-compatible, but Bailian rerank uses a provider-specific URL.
     // Only replace the OpenAI-compatible branch so other DashScope endpoint families stay routed normally.
     {
       match: (p, id) => matchesPreset(p, SystemProviderIds.dashscope) && id === 'openai-compatible',
       build: withSelectedApiKey(buildDashScopeConfig)
-    },
-    // Zhipu chat is OpenAI-compatible, but BigModel's built-in web search rides the
-    // tools array, which providerOptions cannot reach — the body transform moves the
-    // web_search marker into `tools` (see zhipuWebSearch.ts).
-    {
-      match: (p, id) => id === 'openai-compatible' && matchesPreset(p, 'zhipu'),
-      build: withSelectedApiKey((ctx) => {
-        const config = buildOpenAICompatibleConfig(ctx)
-        config.providerSettings.transformRequestBody = transformZhipuRequestBody
-        return config
-      })
-    },
-    // LM Studio's OpenAI-compatible endpoint expects bare base64 for images when
-    // a message contains multiple image blocks. Keep single-image requests on
-    // the unchanged OpenAI data-URI format (lmstudio.ts).
-    {
-      match: (p, id) => id === 'openai-compatible' && matchesPreset(p, SystemProviderIds.lmstudio),
-      build: withSelectedApiKey((ctx) => {
-        const config = buildOpenAICompatibleConfig(ctx)
-        config.providerSettings.transformRequestBody = transformLmStudioRequestBody
-        return config
-      })
-    },
-    // Moonshot chat routes to its extension so the `$web_search` echo-tool factory
-    // resolves under providerId 'moonshot'; the provider's transformRequestBody
-    // rewrites the declaration to Kimi's builtin_function shape (moonshotProvider.ts).
-    {
-      match: (p, id) => id === 'openai-compatible' && matchesPreset(p, 'moonshot'),
-      build: withSelectedApiKey((ctx) => ({
-        providerId: 'moonshot',
-        endpoint: ctx.endpoint,
-        providerSettings: {
-          ...ctx.baseConfig,
-          ...buildCommonOptions(ctx),
-          includeUsage: resolveEndpointDialect(ctx.actualProvider, ctx.endpointType).streamOptions
-        }
-      }))
-    },
-    // Doubao's built-in search rides the OpenAI Responses adapter, which auto-adds
-    // `include: web_search_call.action.sources` alongside the web_search tool. Ark accepts the
-    // tool but 400s on that include, so strip it on the way out (ark.ts). Ark data reporting
-    // (X-Fornax-Trace) rides along in developer mode, mirroring applyHttpTrace's gate.
-    {
-      match: (p, id) => id === 'openai' && matchesPreset(p, SystemProviderIds.doubao),
-      build: withSelectedApiKey((ctx) => {
-        const config = buildGenericProviderConfig(ctx)
-        const settings = config.providerSettings as {
-          headers?: Record<string, string>
-          fetch?: typeof globalThis.fetch
-        }
-        if (application.get('PreferenceService').get('app.developer_mode.enabled')) {
-          settings.headers = { ...settings.headers, 'X-Fornax-Trace': 'true' }
-        }
-        settings.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-          const response = await customFetch(input, { ...init, body: stripArkUnsupportedIncludes(init?.body) })
-          return normalizeArkResponsesResponse(input, response)
-        }
-        return config
-      })
     },
     // DashScope's web_extractor (help.aliyun.com/zh/model-studio/web-extractor) is a Responses tool that
     // must accompany web_search and needs thinking mode. @ai-sdk/openai drops any tool id it does not
@@ -330,66 +242,14 @@ export async function resolveProviderAiSdkConfig(
     // Subset Responses servers (HuggingFace router today) speak the spec-neutral dialect: the
     // minimal body only, no OpenAI-only extras they would reject.
     { match: (_, id) => id === 'open-responses', build: withSelectedApiKey(buildOpenResponsesConfig) },
-    // modelscope / ppio / doubao / dmxapi / tokenhub: chat & embedding are OpenAI-compatible, but IMAGE
-    // generation needs the bespoke transport inside the extension provider
-    // (createXProvider().imageModel()) — a submit/poll loop for most, Ark's own
-    // `/images/generations` protocol for doubao. Override the resolved `openai-compatible` id
-    // to the extension id for image models only — chat/embedding fall through to the generic
-    // openai-compatible builder (which keeps `includeUsage`). Matched by PRESET, not by a bare
-    // `provider.id` — a user-added instance of the same host carries a UUID id, and keying on
-    // the id left it on the generic image model (multipart `/images/edits`, 404 on Ark #18537).
-    // Routing here is also what makes the vendor params land under the `providerOptions` key
-    // the image model reads: the delivery adapter keys the body by this `providerId`, which the
-    // generic branch would leave as `openai-compatible` while the model looked under its own id.
-    {
-      match: (_, id) =>
-        id === 'openai-compatible' &&
-        isGenerateImageModel(model) &&
-        imageExtensionPreset !== undefined &&
-        (imageExtensionPreset !== SystemProviderIds.dmxapi || dmxapiUsesCustomTransport(model.apiModelId ?? model.id)),
-      build: withSelectedApiKey((ctx) => ({
-        // Non-null by the match above.
-        providerId: imageExtensionPreset!,
-        endpoint: ctx.endpoint,
-        providerSettings: {
-          ...ctx.baseConfig,
-          headers: { ...getProviderAppHeaders(ctx.actualProvider), ...getExtraHeaders(ctx.actualProvider) }
-        }
-      }))
-    },
-    {
-      match: (p, id) => id === 'openai-compatible' && isGenerateImageModel(model) && matchesPreset(p, 'minimax'),
-      build: withSelectedApiKey((ctx) => ({
-        providerId: 'minimax',
-        endpoint: ctx.endpoint,
-        providerSettings: {
-          ...ctx.baseConfig,
-          headers: { ...getProviderAppHeaders(ctx.actualProvider), ...getExtraHeaders(ctx.actualProvider) }
-        }
-      }))
-    },
-    { match: (_, id) => id === 'bedrock', build: buildBedrockConfig },
-    // `google-vertex-anthropic` (Vertex on an anthropic-messages endpoint) must route here
-    // too — `buildVertexConfig` branches on `isAnthropic`. Otherwise it falls through to the
-    // generic builder, dropping project/location/googleCredentials and the publisher baseURL.
-    {
-      match: (_, id) => id === 'google-vertex' || id === 'google-vertex-anthropic',
-      build: withProviderAuth('iam-gcp', buildVertexConfig)
-    },
-    {
-      match: (p) => matchesPreset(p, SystemProviderIds.cherryin),
-      build: withSelectedApiKey(buildCherryinConfig)
-    },
     { match: (_, id) => id === 'newapi', build: withSelectedApiKey(buildNewApiConfig) },
-    { match: (_, id) => id === 'aihubmix', build: withSelectedApiKey(buildAiHubMixConfig) },
-    { match: (_, id) => id === 'dmxapi', build: withSelectedApiKey(buildDmxapiConfig) }
   ]
 
   const builder = builders.find((b) => b.match(provider, aiSdkProviderId))
   let resolved: ResolvedProviderConfigBuild
   if (builder) {
     resolved = await builder.build(ctx)
-  } else if (hasProviderConfig(aiSdkProviderId) && aiSdkProviderId !== 'openai-compatible') {
+  } else if (hasProviderConfig(aiSdkProviderId) && (aiSdkProviderId as string) !== 'openai-compatible') {
     resolved = await withSelectedApiKey(buildGenericProviderConfig)(ctx)
   } else {
     resolved = await withSelectedApiKey(buildOpenAICompatibleConfig)(ctx)
@@ -409,35 +269,6 @@ export async function resolveProviderAiSdkConfig(
 }
 
 // ── Config Builders ──
-
-async function buildCopilotConfig(ctx: BuilderContext): Promise<ProviderConfig<'github-copilot-openai-compatible'>> {
-  const storedHeaders = {} // TODO: read from PreferenceService if copilot headers are persisted
-  const headers = mergeHeaders(COPILOT_DEFAULT_HEADERS, storedHeaders)
-  const { token } = await copilotService.getToken(null as any, headers)
-
-  return {
-    providerId: 'github-copilot-openai-compatible',
-    endpoint: ctx.endpoint,
-    providerSettings: {
-      ...ctx.baseConfig,
-      apiKey: token,
-      headers: mergeHeaders(headers, getExtraHeaders(ctx.actualProvider)),
-      name: ctx.actualProvider.id
-    }
-  }
-}
-
-/**
- * OpenCode Go/Zen requires `x-opencode-session` on every request. The builder only
- * declares that; the chat pipeline fills it from the request's conversation.
- */
-function buildOpenCodeGoConfig(ctx: BuilderContext): ProviderConfig {
-  const config =
-    ctx.aiSdkProviderId === 'openai-compatible' ? buildOpenAICompatibleConfig(ctx) : buildGenericProviderConfig(ctx)
-  const headers = (config.providerSettings as { headers?: Record<string, string | undefined> }).headers
-  const hasExplicitSession = Object.keys(headers ?? {}).some((name) => name.toLowerCase() === 'x-opencode-session')
-  return hasExplicitSession ? config : { ...config, conversationHeader: 'x-opencode-session' }
-}
 
 /**
  * OpenAI Codex routes through the standard OpenAI Responses adapter, but against
@@ -606,119 +437,6 @@ function buildOllamaConfig(ctx: BuilderContext): ProviderConfig<'ollama'> {
   }
 }
 
-/**
- * ComfyUI: a credential-free local server, so the host is the whole contract — no
- * `Authorization` even when a key field happens to be filled in (the extension's
- * `apiKey` is accepted for symmetry and never read). `baseURL` is the server root;
- * the transport appends its own paths (`/prompt`, `/history/{id}`, `/view?…`).
- */
-function buildComfyuiConfig(ctx: BuilderContext): ProviderConfig<'comfyui'> {
-  return {
-    providerId: 'comfyui',
-    endpoint: ctx.endpoint,
-    providerSettings: {
-      ...ctx.baseConfig,
-      baseURL: normalizeComfyuiBaseUrl(ctx.resolvedBaseUrl),
-      headers: headersWithoutCredentials(ctx.actualProvider)
-    }
-  }
-}
-
-function buildBedrockConfig(ctx: BuilderContext): ResolvedProviderConfigBuild {
-  const authConfig = providerService.getAuthConfig(ctx.actualProvider.id)
-  const base = { providerId: 'bedrock' as const, endpoint: ctx.endpoint }
-
-  // SDK treats `""` as a valid baseURL → every request hits `""/model/...`. Guard region too.
-  // (Mirrors renderer-side fix for upstream #14425.)
-  const baseURL = ctx.baseConfig.baseURL || undefined
-
-  if (authConfig?.type === 'iam-aws') {
-    const region = authConfig.region?.trim() || undefined
-    return {
-      config: {
-        ...base,
-        providerSettings: {
-          baseURL,
-          region,
-          ...(authConfig.accessKeyId && { accessKeyId: authConfig.accessKeyId }),
-          ...(authConfig.secretAccessKey && { secretAccessKey: authConfig.secretAccessKey })
-        }
-      },
-      credentialReceipt: { attribution: 'auth', method: 'iam-aws' }
-    }
-  }
-
-  // API-key fallback. Region undefined so the SDK picks its own default, not a hardcode.
-  const selected = selectApiKey(ctx)
-  return {
-    config: { ...base, providerSettings: { ...selected.baseConfig, baseURL } },
-    credentialReceipt: selected.apiKeySelection
-  }
-}
-
-function buildVertexConfig(
-  ctx: BuilderContext
-): ProviderConfig<'google-vertex'> | ProviderConfig<'google-vertex-maas'> {
-  const authConfig = providerService.getAuthConfig(ctx.actualProvider.id)
-
-  if (authConfig?.type !== 'iam-gcp') {
-    throw new Error('VertexAI requires iam-gcp auth configuration.')
-  }
-
-  const { project, location, credentials } = authConfig
-  const googleCredentials = credentials as Record<string, string> | undefined
-
-  const { privateKey, clientEmail } = normalizeVertexCredentials(googleCredentials)
-  const creds = googleCredentials
-    ? { ...googleCredentials, clientEmail, privateKey: formatPrivateKey(privateKey ?? '') }
-    : undefined
-
-  const modelId = ctx.model.apiModelId ?? ctx.model.id
-  const isAnthropic = ctx.aiSdkProviderId === 'google-vertex-anthropic' || modelId.startsWith('claude')
-
-  // MaaS open/partner models (Llama, DeepSeek, Qwen, GLM, Kimi, gpt-oss) are served over
-  // Vertex's OpenAI-compatible Chat Completions endpoint, not the Gemini generateContent
-  // SDK that `google-vertex` uses. They carry a `{publisher}/{model}` id — the model listing
-  // bakes the publisher prefix in (§listModels/vertex), and that same id is the `model` the
-  // OpenAI-compatible endpoint expects. Route them to the dedicated MaaS adapter, which mints
-  // the GCP bearer token itself from the iam-gcp credentials.
-  // Manually-added MaaS models must use the same `publisher/model-maas` form as listed models.
-  if (!isAnthropic && isVertexMaasModelId(modelId)) {
-    return {
-      providerId: 'google-vertex-maas',
-      endpoint: ctx.endpoint,
-      providerSettings: {
-        project,
-        location,
-        // Standard providers leave baseURL empty so the adapter derives the aiplatform host
-        // from project+location; a custom host (proxy) passes through untouched.
-        ...(ctx.baseConfig.baseURL && { baseURL: ctx.baseConfig.baseURL }),
-        ...(creds && { googleCredentials: creds }),
-        headers: { ...getProviderAppHeaders(ctx.actualProvider), ...getExtraHeaders(ctx.actualProvider) }
-      }
-    } as ProviderConfig<'google-vertex-maas'>
-  }
-
-  // Standard Vertex providers leave baseURL empty. Appending the publisher suffix to `''`
-  // yields a truthy host-less URL (`/publishers/google`), which the Vertex SDK's `?? ` default
-  // does NOT override — so it must stay `undefined` to let the SDK derive the full aiplatform
-  // host. Only append the suffix when a custom host is actually configured.
-  const baseURL = ctx.baseConfig.baseURL
-    ? ctx.baseConfig.baseURL + (isAnthropic ? '/publishers/anthropic/models' : '/publishers/google')
-    : undefined
-
-  return {
-    providerId: isAnthropic ? 'google-vertex-anthropic' : 'google-vertex',
-    endpoint: ctx.endpoint,
-    providerSettings: {
-      baseURL,
-      project,
-      location,
-      ...(creds && { googleCredentials: creds })
-    }
-  } as ProviderConfig<'google-vertex'>
-}
-
 function mapCherryinEndpointType(epType: string | undefined): CherryInProviderSettings['endpointType'] {
   if (!epType) return undefined
 
@@ -738,26 +456,6 @@ function mapCherryinEndpointType(epType: string | undefined): CherryInProviderSe
       return 'embedding'
     default:
       return 'openai'
-  }
-}
-
-function buildCherryinConfig(ctx: BuilderContext): ProviderConfig {
-  const provider = ctx.actualProvider
-  const anthropicBaseURL = formatApiHost(provider.endpointConfigs?.[ENDPOINT_TYPE.ANTHROPIC_MESSAGES]?.baseUrl)
-  const geminiBaseURL = formatApiHost(getBaseUrl(provider, ENDPOINT_TYPE.GOOGLE_GENERATE_CONTENT), true, 'v1beta')
-
-  const cherryinEndpointType = mapCherryinEndpointType(ctx.endpointType)
-
-  return {
-    providerId: ctx.aiSdkProviderId,
-    endpoint: ctx.endpoint,
-    providerSettings: {
-      ...ctx.baseConfig,
-      endpointType: cherryinEndpointType,
-      anthropicBaseURL,
-      geminiBaseURL,
-      headers: { ...getProviderAppHeaders(ctx.actualProvider), ...getExtraHeaders(ctx.actualProvider) }
-    }
   }
 }
 
@@ -884,39 +582,6 @@ function buildOpenResponsesConfig(ctx: BuilderContext): ProviderConfig<'open-res
         // Parity with buildCommonOptions' 'openai' branch — these providers received it before.
         'X-Api-Key': ctx.baseConfig.apiKey
       }
-    }
-  }
-}
-
-function buildEndpointBaseURLs(provider: Provider): Partial<Record<EndpointType, string>> {
-  const entries = Object.entries(provider.endpointConfigs ?? {}).flatMap(([endpointType, config]) => {
-    if (!config?.baseUrl) return []
-    const formatted = formatBaseURL(config.baseUrl, provider, endpointType as EndpointType)
-    return [[endpointType, routeToEndpoint(formatted).baseURL] as const]
-  })
-  return Object.fromEntries(entries)
-}
-
-function buildAiHubMixConfig(ctx: BuilderContext): ProviderConfig<'aihubmix'> {
-  return {
-    providerId: 'aihubmix',
-    endpoint: ctx.endpoint,
-    providerSettings: {
-      ...ctx.baseConfig,
-      endpointBaseURLs: buildEndpointBaseURLs(ctx.actualProvider),
-      headers: { ...getProviderAppHeaders(ctx.actualProvider), ...getExtraHeaders(ctx.actualProvider) }
-    }
-  }
-}
-
-function buildDmxapiConfig(ctx: BuilderContext): ProviderConfig<'dmxapi'> {
-  return {
-    providerId: 'dmxapi',
-    endpoint: ctx.endpoint,
-    providerSettings: {
-      ...ctx.baseConfig,
-      endpointBaseURLs: buildEndpointBaseURLs(ctx.actualProvider),
-      headers: { ...getProviderAppHeaders(ctx.actualProvider), ...getExtraHeaders(ctx.actualProvider) }
     }
   }
 }

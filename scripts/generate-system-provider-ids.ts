@@ -24,7 +24,7 @@ const OUTPUT_FILE = path.join(ROOT_DIR, 'src', 'shared', 'utils', 'systemProvide
  * SystemProviderId. Every entry must exist in the registry (the generator
  * throws otherwise, catching a stale exclude after an upstream rename/removal).
  */
-export const CLI_ONLY_PROVIDER_IDS = ['claude-code', 'openai-codex', 'grok-cli']
+export const CLI_ONLY_PROVIDER_IDS: string[] = []
 
 /** Derive the SystemProviderId set from a raw `providers.json` string, sorted. */
 export function extractSystemProviderIds(providersJson: string): string[] {

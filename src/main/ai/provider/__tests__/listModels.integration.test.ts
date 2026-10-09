@@ -102,8 +102,8 @@ describe('listModels - LM Studio response isolation', () => {
     })
     const port = await listen(server)
     const provider = makeProvider({
-      id: SystemProviderIds.lmstudio,
-      presetProviderId: SystemProviderIds.lmstudio,
+      id: SystemProviderIds.bimhu,
+      presetProviderId: SystemProviderIds.bimhu,
       defaultChatEndpoint: ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS,
       endpointConfigs: {
         [ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS]: { baseUrl: `http://127.0.0.1:${port}/v1` }
@@ -121,7 +121,7 @@ describe('listModels - LM Studio response isolation', () => {
     ).toEqual([
       [
         'Skipped malformed OpenAI-compatible model entries',
-        { providerId: SystemProviderIds.lmstudio, skippedModelCount: 1 }
+        { providerId: SystemProviderIds.bimhu, skippedModelCount: 1 }
       ]
     ])
     const logs = JSON.stringify([

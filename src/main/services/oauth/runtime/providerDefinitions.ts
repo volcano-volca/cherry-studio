@@ -1,6 +1,5 @@
 import { OPENAI_CODEX_PROVIDER_ID } from '@shared/data/presets/codex'
 import { GROK_CLI_PROVIDER_ID } from '@shared/data/presets/grokCli'
-import { SystemProviderIds } from '@shared/utils/systemProviderId'
 
 import { cherryInOAuthProvider } from './providers/cherryin'
 import { codexOAuthProvider } from './providers/codex'
@@ -16,7 +15,7 @@ import type { OAuthRuntimeProviderDefinition } from './types'
 export const oauthProviderDefinitions = {
   [OPENAI_CODEX_PROVIDER_ID]: codexOAuthProvider,
   [GROK_CLI_PROVIDER_ID]: grokOAuthProvider,
-  [SystemProviderIds.cherryin]: cherryInOAuthProvider
+  ['cherryin']: cherryInOAuthProvider
 } satisfies Record<string, OAuthRuntimeProviderDefinition>
 
 export type OAuthProviderId = keyof typeof oauthProviderDefinitions

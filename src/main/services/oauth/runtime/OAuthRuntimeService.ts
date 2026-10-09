@@ -4,7 +4,6 @@ import { providerService } from '@data/services/ProviderService'
 import { loggerService } from '@logger'
 import { BaseService, Injectable, Phase, ServicePhase } from '@main/core/lifecycle'
 import type { WindowId } from '@shared/ipc/types'
-import type { SystemProviderIds } from '@shared/utils/systemProviderId'
 
 import { describeOAuthError, OAuthServiceError, OAuthSignInCancelledError, OAuthTransientError } from '../errors'
 import { LoopbackCallbackTransport } from './LoopbackCallbackTransport'
@@ -200,7 +199,7 @@ export class OAuthRuntimeService extends BaseService {
 
   public signIn(
     initiatorWindowId: WindowId | null,
-    providerId: typeof SystemProviderIds.cherryin,
+    providerId: 'cherryin',
     requestId: string,
     context?: CherryInOAuthContext
   ): Promise<CherryInSignInResult>
@@ -328,7 +327,7 @@ export class OAuthRuntimeService extends BaseService {
   }
 
   public getValidAccessToken(
-    providerId: typeof SystemProviderIds.cherryin,
+    providerId: 'cherryin',
     context?: CherryInOAuthContext
   ): Promise<OAuthTokenCredentials | null>
   public getValidAccessToken(
@@ -392,7 +391,7 @@ export class OAuthRuntimeService extends BaseService {
    * the retry, for the caller's diagnostic logging.
    */
   public authenticatedFetch(
-    providerId: typeof SystemProviderIds.cherryin,
+    providerId: 'cherryin',
     buildRequest: (creds: OAuthTokenCredentials) => { input: RequestInfo | URL; init: RequestInit },
     doFetch: (input: RequestInfo | URL, init: RequestInit) => Promise<Response>,
     options?: OAuthFetchOptions<CherryInOAuthContext>

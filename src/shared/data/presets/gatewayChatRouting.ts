@@ -1,6 +1,5 @@
 import { ENDPOINT_TYPE, type EndpointType, type Model } from '@shared/data/types/model'
 import type { Provider } from '@shared/data/types/provider'
-import { SystemProviderIds } from '@shared/utils/systemProviderId'
 
 export type AihubmixChatFamily = 'anthropic' | 'gemini' | 'openai-responses' | 'openai-chat' | 'compat'
 export type DmxapiChatFamily = 'openai-compat' | 'openai' | 'anthropic' | 'gemini'
@@ -100,10 +99,7 @@ export function resolveDmxapiEndpointType(modelId: string): EndpointType {
   return resolveDmxapiChatRoute(modelId).endpointType
 }
 
-const GATEWAY_MODEL_ROUTERS: Partial<Record<string, (modelId: string) => GatewayModelRoute>> = {
-  [SystemProviderIds.aihubmix]: resolveAihubmixChatRoute,
-  [SystemProviderIds.dmxapi]: resolveDmxapiChatRoute
-}
+const GATEWAY_MODEL_ROUTERS: Partial<Record<string, (modelId: string) => GatewayModelRoute>> = {}
 
 /** Resolve a gateway's per-model wire route from data available in both main and renderer. */
 export function resolveGatewayChatRoute(provider: Provider, model: Model): GatewayModelRoute | undefined {

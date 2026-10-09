@@ -5,7 +5,6 @@ import { application } from '@application'
 import { loggerService } from '@logger'
 import type { CherryInBalance, CherryInProfile } from '@shared/ipc/schemas/cherryin'
 import { isSensitiveKey, REDACTED, redactSecretText } from '@shared/utils/redaction'
-import { SystemProviderIds } from '@shared/utils/systemProviderId'
 
 import { CherryInOAuthServiceError, validateCherryInApiHost } from './CherryInOAuthConfig'
 import { describeOAuthError, OAuthTransientError } from './errors'
@@ -68,7 +67,7 @@ export class CherryInOAuthService {
     try {
       const credentials = await application
         .get('OAuthRuntimeService')
-        .getValidAccessToken(SystemProviderIds.cherryin, { apiHost })
+        .getValidAccessToken('cherryin', { apiHost })
       return credentials?.accessToken ?? null
     } catch (error) {
       // A transient refresh failure means the session is still valid but we
@@ -155,7 +154,7 @@ export class CherryInOAuthService {
   // context for refresh, and supplies the 401 diagnostic log.
   private authenticatedFetch = (apiHost: string, endpoint: string, options: RequestInit = {}): Promise<Response> => {
     return application.get('OAuthRuntimeService').authenticatedFetch(
-      SystemProviderIds.cherryin,
+      'cherryin',
       (creds) => ({
         input: `${apiHost}${endpoint}`,
         init: {
@@ -270,7 +269,7 @@ export class CherryInOAuthService {
         }
       }
 
-      await application.get('OAuthRuntimeService').logout(SystemProviderIds.cherryin)
+      await application.get('OAuthRuntimeService').logout('cherryin')
       logger.debug('Successfully cleared CherryIN OAuth tokens from auth config')
     } catch (error) {
       logger.error('Failed to logout:', error as Error)

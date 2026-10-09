@@ -7,7 +7,6 @@ import type { Model } from '@shared/data/types/model'
 import { ENDPOINT_TYPE, type EndpointType } from '@shared/data/types/model'
 import type { Provider } from '@shared/data/types/provider'
 import { getRawModelId } from '@shared/utils/model'
-import { SystemProviderIds } from '@shared/utils/systemProviderId'
 
 import { type AppProviderId, appProviderIds } from '../types'
 import { getBaseUrl } from '../utils/provider'
@@ -139,8 +138,6 @@ export function resolveProviderOptionsKey(
       return 'xai'
     case 'bedrock':
       return 'bedrock'
-    case SystemProviderIds.ollama:
-      return 'ollama'
     case 'github-copilot-openai-compatible':
     case 'openai-compatible':
       return context?.actualProviderId ?? providerId
@@ -148,8 +145,6 @@ export function resolveProviderOptionsKey(
     case 'cherryin-chat':
     case 'newapi':
     case 'aihubmix':
-    case SystemProviderIds.dmxapi:
-    case SystemProviderIds.gateway:
       if (context?.endpointType === ENDPOINT_TYPE.ANTHROPIC_MESSAGES) return 'anthropic'
       if (context?.endpointType === ENDPOINT_TYPE.GOOGLE_GENERATE_CONTENT) return 'google'
       if (context?.endpointType === ENDPOINT_TYPE.OPENAI_RESPONSES) return 'openai'
