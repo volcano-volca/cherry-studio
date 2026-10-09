@@ -7,6 +7,7 @@ import p_aws_bedrock from './aws-bedrock'
 import p_azure_openai from './azure-openai'
 import p_baichuan from './baichuan'
 import p_baidu_cloud from './baidu-cloud'
+import p_bimhu from './bimhu'
 import p_burncloud from './burncloud'
 import p_cerebras from './cerebras'
 import p_cherryin from './cherryin'
@@ -67,6 +68,7 @@ import p_zhipu from './zhipu'
 
 /** Every provider, in registry order. Source of truth for data/providers.json + data/provider-models.json. */
 export const PROVIDERS: Provider[] = [
+  p_bimhu,
   p_cherryin,
   p_silicon,
   p_aihubmix,

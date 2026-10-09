@@ -2,6 +2,47 @@
   "providers": [
     {
       "availableInEditions": ["global", "cn"],
+      "description": "Bimhu - AI model provider",
+      "endpointConfigs": {
+        "anthropic-messages": {
+          "adapterFamily": "newapi"
+        },
+        "google-generate-content": {
+          "adapterFamily": "newapi"
+        },
+        "openai-chat-completions": {
+          "adapterFamily": "newapi",
+          "baseUrl": "https://api.bimhu.com",
+          "reasoningFormat": {
+            "type": "openai-chat"
+          }
+        },
+        "openai-responses": {
+          "adapterFamily": "newapi"
+        }
+      },
+      "id": "bimhu",
+      "metadata": {
+        "website": {
+          "official": "https://bimhu.com"
+        }
+      },
+      "name": "Bimhu",
+      "serverTools": [
+        {
+          "id": "web-search",
+          "modelScope": "model-dependent",
+          "vendors": ["anthropic", "gemini", "openai"]
+        },
+        {
+          "id": "url-context",
+          "modelScope": "model-dependent",
+          "vendors": ["anthropic", "gemini"]
+        }
+      ]
+    },
+    {
+      "availableInEditions": ["global", "cn"],
       "defaultChatEndpoint": "openai-chat-completions",
       "description": "CherryIN - AI model provider",
       "endpointConfigs": {

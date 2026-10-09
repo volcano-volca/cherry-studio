@@ -438,7 +438,7 @@ export default function OnboardingPage({
             {step === 'welcome' && (
               <div className="flex h-full w-full items-center justify-center px-6 pb-20">
                 <div className="flex w-full max-w-[420px] flex-col items-center">
-                  <img src={AppLogo} alt="Cherry Studio" className="size-16 rounded-xl" />
+                  <img src={AppLogo} alt="BimhuChat" className="size-16 rounded-xl" />
                   <div className="mt-5 flex flex-col gap-2 text-center">
                     <h1 className="m-0 font-semibold text-2xl text-foreground">{t('onboarding.welcome.title')}</h1>
                     <p className="m-0 text-muted-foreground text-sm">{t('onboarding.welcome.subtitle')}</p>

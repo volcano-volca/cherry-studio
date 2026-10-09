@@ -39,7 +39,9 @@ function toDbRow(p: ProtoProviderConfig) {
     providerId: p.id,
     presetProviderId: p.presetProviderId ?? p.id,
     name: p.name,
-    authConfig: getSeedAuthConfig(p.id)
+    authConfig: getSeedAuthConfig(p.id),
+    // Bimhu is the dedicated gateway: enabled by default on fresh installs.
+    isEnabled: p.id === 'bimhu'
   }
 }
 

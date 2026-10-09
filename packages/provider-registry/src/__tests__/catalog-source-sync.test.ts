@@ -76,9 +76,11 @@ const overrideIdentity = (o: { providerId: string; modelId: string; apiModelId?:
   `${o.providerId}|${o.modelId}|${o.apiModelId ?? ''}|${(o.modelVariants ?? []).slice().sort().join(',')}`
 
 describe('catalog ↔ source sync (regenerate guard)', () => {
-  it('keeps AMD GPU Cloud in the twentieth slot used to seed new profiles', () => {
-    expect(PROVIDERS[19]?.id).toBe('radeon-cloud')
-    expect(providers[19]?.id).toBe('radeon-cloud')
+  it('keeps Bimhu in the first slot and AMD GPU Cloud in the twenty-first slot used to seed new profiles', () => {
+    expect(PROVIDERS[0]?.id).toBe('bimhu')
+    expect(providers[0]?.id).toBe('bimhu')
+    expect(PROVIDERS[20]?.id).toBe('radeon-cloud')
+    expect(providers[20]?.id).toBe('radeon-cloud')
   })
 
   it('makes CherryIN available in the China edition', () => {
