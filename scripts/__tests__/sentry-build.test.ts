@@ -15,13 +15,20 @@ describe('Sentry production build', () => {
     vi.resetModules()
   })
 
-  it('fails a production Sentry build when source-map upload credentials are incomplete', () => {
-    expect(() =>
+  it('skips source-map upload with a warning when upload credentials are incomplete', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    expect(
       resolveSentryBuildSettings({
         NODE_ENV: 'production',
         SENTRY_SOURCE_MAP_UPLOAD: 'true'
       })
-    ).toThrow('Sentry production builds require: SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT')
+    ).toEqual({ sourceMapUploadEnabled: false })
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Sentry source-map upload skipped, missing: SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT'
+    )
+
+    warnSpy.mockRestore()
   })
 
   it('does not require upload credentials for ordinary production builds', () => {

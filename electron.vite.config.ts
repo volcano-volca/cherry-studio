@@ -60,7 +60,8 @@ export function resolveSentryBuildSettings(env: NodeJS.ProcessEnv) {
   const missingUploadEnv = sourceMapUploadEnabled ? SENTRY_UPLOAD_ENV_KEYS.filter((key) => !env[key]?.trim()) : []
 
   if (missingUploadEnv.length > 0) {
-    throw new Error(`Sentry production builds require: ${missingUploadEnv.join(', ')}`)
+    console.warn(`Sentry source-map upload skipped, missing: ${missingUploadEnv.join(', ')}`)
+    return { sourceMapUploadEnabled: false }
   }
 
   return { sourceMapUploadEnabled }
