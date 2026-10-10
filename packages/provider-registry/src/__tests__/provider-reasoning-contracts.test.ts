@@ -8,12 +8,6 @@ const provider = (providerId: string) => {
   return result
 }
 
-const override = (providerId: string, modelId: string) => {
-  const result = provider(providerId).overrides?.find((entry) => entry.modelId === modelId)
-  if (!result) throw new Error(`Missing override: ${providerId}/${modelId}`)
-  return result
-}
-
 describe('provider reasoning contracts', () => {
   // `auto` is the one selection no model validates, so the serializer projects a profile's automatic
   // tier onto the model's declared efforts. A tier buried in a literal operation is invisible to it
@@ -44,17 +38,5 @@ describe('provider reasoning contracts', () => {
     }
 
     expect(offenders).toEqual([])
-  })
-
-  it('keeps DashScope Kimi K3 reasoning within the provider-supported effort vocabulary', () => {
-    const dashscopeSupport = override('dashscope', 'kimi-k3').reasoningContracts?.['openai-chat-completions']?.support
-
-    expect(dashscopeSupport?.controls).toEqual([{ default: 'max', kind: 'effort', values: ['none', 'max'] }])
-  })
-
-  it.each(['qwen3-coder', 'qwen3-coder-next'])('does not declare a DashScope reasoning contract for %s', (modelId) => {
-    expect(
-      provider('dashscope').overrides?.some((entry) => entry.modelId === modelId && entry.reasoningContracts)
-    ).toBe(false)
   })
 })

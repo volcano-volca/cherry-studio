@@ -95,19 +95,6 @@ export const OPENROUTER_WIRE_PROFILE: WireProfile = {
 }
 
 /**
- * DashScope native image API (qwen-image / wanx / wan2.5 / qwen-mt-image …).
- * Reproduces the `dashscope` emitter: the mapped sampling fields under the
- * `dashscope` key, over a `passthrough` of the vendor bag the submit/poll
- * transport reads (`modelDescriptor`, `sourceLang`/`targetLang`, …) — without it,
- * `dashscopeTransport.submit` throws "Missing modelDescriptor". Mapped fields win
- * over bag entries of the same name. The async transport runs on the job system;
- * this bag is what it receives as `providerParams`.
- */
-export const DASHSCOPE_WIRE_PROFILE: WireProfile = {
-  forward: ['negativePrompt', 'seed', 'style']
-}
-
-/**
  * Doubao (Volcengine Ark) via `@ai-sdk/bytedance`. That package's option schema is
  * camelCase and does the vendor naming itself (`outputFormat` → `output_format`,
  * `maxImages` → `sequential_image_generation_options.max_images`), so this profile only
@@ -254,7 +241,6 @@ export const WIRE_REGISTRY: Record<string, WireRegistration> = {
   // Vertex reuses the google body but delivers under `vertex` (the key the
   // @ai-sdk/google-vertex image model reads), NOT the `google-vertex` provider id.
   'google-vertex': { profile: GOOGLE_WIRE_PROFILE, key: 'vertex' },
-  dashscope: { profile: DASHSCOPE_WIRE_PROFILE, passthrough: true },
   // `@ai-sdk/bytedance` reads `providerOptions.bytedance` — its own fixed key, independent
   // of our `doubao` provider id — so the body is re-keyed, mirroring google-vertex → vertex.
   doubao: { profile: DOUBAO_WIRE_PROFILE, key: 'bytedance', passthrough: true },

@@ -1,4 +1,3 @@
-import { Plus } from 'lucide-react'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -74,17 +73,12 @@ export default function ProviderList({
     isOpen: editorOpen,
     mode: editorMode,
     initialLogo,
-    startAdd,
     startAddFrom,
     startEdit,
     cancel: cancelEditor,
     submit: submitEditor
   } = useProviderEditor({ onProviderCreated: handleProviderCreated })
   const [editorActivated, setEditorActivated] = useState(false)
-  const openProviderEditor = useCallback(() => {
-    setEditorActivated(true)
-    startAdd()
-  }, [startAdd])
   const openProviderEditorFrom = useCallback(
     (provider: Provider) => {
       setEditorActivated(true)
@@ -308,17 +302,6 @@ export default function ProviderList({
   }
 
   const handleAddAnother = openProviderEditorFrom
-  const addProviderButton = (
-    <button
-      type="button"
-      aria-label={t('settings.provider.add.button_title')}
-      disabled={dragging}
-      onClick={openProviderEditor}
-      className={providerListClasses.addButton}>
-      <Plus size={14} strokeWidth={2.5} />
-      <span>{t('settings.provider.add.button_title')}</span>
-    </button>
-  )
 
   return (
     <aside className={`${providerListClasses.shell}`}>
@@ -350,7 +333,6 @@ export default function ProviderList({
         onReorderError={handleReorderError}
         renderItem={renderProviderItem}
       />
-      <div className={providerListClasses.addFooter}>{addProviderButton}</div>
       {editorActivated ? (
         <Suspense fallback={null}>
           <ProviderEditorDrawer

@@ -11,8 +11,8 @@ import { describe, expect, it } from 'vitest'
 import { hasImageTransport, resolveImageTransport } from '../imageTransportRegistry'
 
 describe('resolveImageTransport', () => {
-  it('resolves a poll-capable transport for ppio / dashscope / modelscope', () => {
-    for (const providerId of ['ppio', 'dashscope', 'modelscope']) {
+  it('resolves a poll-capable transport for ppio / modelscope', () => {
+    for (const providerId of ['ppio', 'modelscope']) {
       expect(hasImageTransport(providerId, 'any-model')).toBe(true)
       const transport = resolveImageTransport(providerId, 'any-model', {})
       expect(transport).not.toBeNull()

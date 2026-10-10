@@ -1351,51 +1351,6 @@ describe('buildAgentParams web-tool routing', () => {
     }
   )
 
-  it.each(['deepseek-v3', 'deepseek-v3.2'])(
-    'keeps Bailian built-in search enabled for %s on Chat Completions',
-    async (apiModelId) => {
-      resolveProviderAiSdkConfigMock.mockResolvedValue({
-        config: { providerId: 'openai-compatible', providerSettings: {} },
-        credentialReceipt: { attribution: 'unknown' }
-      })
-      const dashscopeProvider = makeProvider({
-        id: 'dashscope',
-        presetProviderId: 'dashscope',
-        defaultChatEndpoint: ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS,
-        endpointConfigs: {
-          [ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS]: { adapterFamily: 'openai-compatible' }
-        },
-        serverTools: [{ id: SERVER_TOOL.WEB_SEARCH, modelScope: 'model-dependent' }]
-      })
-      const dashscopeModel = makeModel({
-        id: `dashscope::${apiModelId}`,
-        providerId: 'dashscope',
-        apiModelId,
-        endpointTypes: [ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS],
-        capabilities: [MODEL_CAPABILITY.FUNCTION_CALL]
-      })
-      preferenceGetMock.mockImplementation((key: string) => {
-        if (key === 'chat.web_search.model_tools_preferred') return true
-        if (key === 'chat.web_search.max_results') return 5
-        if (key === 'chat.web_search.exclude_domains') return []
-        return null
-      })
-
-      const result = await buildAgentParams({
-        request: { conversation: CONVERSATION },
-        signal: undefined,
-        provider: dashscopeProvider,
-        model: dashscopeModel,
-        assistant
-      })
-
-      expect(result.options.providerOptions).toMatchObject({
-        dashscope: { enable_search: true, search_options: { forced_search: true } }
-      })
-      expect(result.tools?.web_search).toBeUndefined()
-    }
-  )
-
   // Owning a knowledge base is global account state; the KB tools only load when this request also
   // scopes one (their `applies` requires both). Treating the global flag as a function-tool signal
   // made every Gemini 2.5 request look like a native-tool conflict and lose the server route.

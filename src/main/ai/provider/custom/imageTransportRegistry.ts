@@ -38,15 +38,6 @@ const TRANSPORTS: Record<string, TransportRegistration> = {
       return buildPpioTransport(settings as Parameters<typeof buildPpioTransport>[0])
     }
   },
-  dashscope: {
-    supports: () => true,
-    poll: true,
-    cancel: true,
-    load: async (settings) => {
-      const { buildDashScopeTransport } = await import('./dashscope/dashscopeProvider')
-      return buildDashScopeTransport(settings as Parameters<typeof buildDashScopeTransport>[0])
-    }
-  },
   modelscope: {
     supports: () => true,
     poll: true,

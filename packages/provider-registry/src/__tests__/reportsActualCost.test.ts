@@ -1,6 +1,6 @@
 /**
  * Guards the `reportsActualCost` provider capability flag: defaults to false
- * for the remaining providers (bimhu, dashscope) — neither reports actual cost.
+ * for the remaining provider (bimhu) — it does not report actual cost.
  */
 
 import * as fs from 'node:fs'
@@ -14,7 +14,7 @@ describe('provider reportsActualCost', () => {
     const raw = fs.readFileSync(new URL('../../data/providers.json', import.meta.url), 'utf-8')
     const { providers } = ProviderListSchema.parse(JSON.parse(raw))
 
-    expect(providers.map((p) => p.id).sort()).toEqual(['bimhu', 'dashscope'])
+    expect(providers.map((p) => p.id).sort()).toEqual(['bimhu'])
     for (const provider of providers) {
       expect(provider.reportsActualCost).toBe(false)
     }

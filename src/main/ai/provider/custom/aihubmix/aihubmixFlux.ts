@@ -102,7 +102,7 @@ class AihubmixFluxTransport implements ImageGenerationTransport {
     const url = `${this.settings.apiRoot}/v1/tasks/${encodeURIComponent(taskId)}`
     const startedAt = Date.now()
     // Absorb transient poll failures (network blips, transient 5xx) the same
-    // way the sibling async transports do (ppio/dashscope/modelscope), so a
+    // way the sibling async transports do (ppio/modelscope), so a
     // single hiccup mid-render doesn't abort an otherwise-healthy task.
     // Terminal vendor statuses (Error/Moderated) and timeout/abort still fail
     // immediately.

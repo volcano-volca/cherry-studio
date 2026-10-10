@@ -29,10 +29,8 @@ import {
   isGeminiProvider,
   isOllamaProvider,
   isVertexProvider,
-  matchesPreset,
   resolveEndpointDialect
 } from '@shared/utils/provider'
-import { SystemProviderIds } from '@shared/utils/systemProviderId'
 
 import type { ProviderConfig } from '../types'
 import { type AppProviderId, appProviderIds, type AppProviderSettingsMap } from '../types'
@@ -47,7 +45,6 @@ import { generateSignature } from './cherryai'
 import { buildCherryCloudProviderConfig } from './cherryCloud'
 import { buildCodexRequestHeaders, coerceCodexRequestBody } from './codex'
 import type { ServingAuthMethod, ServingCredentialReceipt } from './credential'
-import { appendDashScopeWebExtractor } from './custom/dashscope/dashscopeWebExtractor'
 import { resolveAiSdkProviderId, type ResolvedEndpoint, resolveEffectiveEndpoint } from './endpoint'
 import { buildGrokCliRequestHeaders, rewriteGrokCliResponsesBody } from './grokCli'
 
@@ -221,24 +218,6 @@ export async function resolveProviderAiSdkConfig(
     },
     { match: (p) => isOllamaProvider(p), build: withSelectedApiKey(buildOllamaConfig) },
     { match: (p) => isAzureOpenAIProvider(p), build: withSelectedApiKey(buildAzureConfig) },
-    // DashScope chat is OpenAI-compatible, but Bailian rerank uses a provider-specific URL.
-    // Only replace the OpenAI-compatible branch so other DashScope endpoint families stay routed normally.
-    {
-      match: (p, id) => matchesPreset(p, SystemProviderIds.dashscope) && id === 'openai-compatible',
-      build: withSelectedApiKey(buildDashScopeConfig)
-    },
-    // DashScope's web_extractor (help.aliyun.com/zh/model-studio/web-extractor) is a Responses tool that
-    // must accompany web_search and needs thinking mode. @ai-sdk/openai drops any tool id it does not
-    // know, so it is appended to the serialized body (dashscopeWebExtractor.ts) rather than via a factory.
-    {
-      match: (p, id) => id === 'openai' && matchesPreset(p, SystemProviderIds.dashscope),
-      build: withSelectedApiKey((ctx) => {
-        const config = buildGenericProviderConfig(ctx)
-        config.providerSettings.fetch = (input: RequestInfo | URL, init?: RequestInit) =>
-          customFetch(input, { ...init, body: appendDashScopeWebExtractor(init?.body) })
-        return config
-      })
-    },
     // Subset Responses servers (HuggingFace router today) speak the spec-neutral dialect: the
     // minimal body only, no OpenAI-only extras they would reject.
     { match: (_, id) => id === 'open-responses', build: withSelectedApiKey(buildOpenResponsesConfig) },
@@ -582,18 +561,6 @@ function buildOpenResponsesConfig(ctx: BuilderContext): ProviderConfig<'open-res
         // Parity with buildCommonOptions' 'openai' branch — these providers received it before.
         'X-Api-Key': ctx.baseConfig.apiKey
       }
-    }
-  }
-}
-
-function buildDashScopeConfig(ctx: BuilderContext): ProviderConfig<'dashscope'> {
-  return {
-    providerId: 'dashscope',
-    endpoint: ctx.endpoint,
-    providerSettings: {
-      ...ctx.baseConfig,
-      headers: { ...getProviderAppHeaders(ctx.actualProvider), ...getExtraHeaders(ctx.actualProvider) },
-      includeUsage: resolveEndpointDialect(ctx.actualProvider, ctx.endpointType).streamOptions
     }
   }
 }

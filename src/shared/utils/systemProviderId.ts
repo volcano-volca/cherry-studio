@@ -6,8 +6,7 @@
 import * as z from 'zod'
 
 export const SystemProviderIdSchema = z.enum([
-  'bimhu',
-  'dashscope'
+  'bimhu'
 ])
 
 export type SystemProviderId = z.infer<typeof SystemProviderIdSchema>
@@ -17,6 +16,5 @@ export const isSystemProviderId = (id: string): id is SystemProviderId => {
 }
 
 export const SystemProviderIds = {
-  bimhu: 'bimhu',
-  dashscope: 'dashscope'
+  bimhu: 'bimhu'
 } as const satisfies Record<SystemProviderId, SystemProviderId>

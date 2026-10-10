@@ -22,7 +22,6 @@ import { LOCAL_EMBEDDING_PROVIDER_ID } from '@shared/data/presets/localEmbedding
 
 import type { AihubmixProviderSettings } from './custom/aihubmix/aihubmixProvider'
 import type { ComfyuiProvider, ComfyuiProviderSettings } from './custom/comfyui/comfyuiProvider'
-import type { DashScopeProviderSettings } from './custom/dashscope/dashscopeProvider'
 import type { DmxapiProviderSettings } from './custom/dmxapi/dmxapiProvider'
 import type { LocalEmbeddingProviderSettings } from './custom/localEmbedding/localEmbeddingProvider'
 import type { MinimaxProviderSettings } from './custom/minimax/minimaxProvider'
@@ -359,20 +358,6 @@ export const ModelscopeExtension = ProviderExtension.create({
 } as const satisfies ProviderExtensionConfig<ModelscopeProviderSettings, ProviderV3, 'modelscope'>)
 
 /**
- * DashScope (Bailian) Extension - OpenAI-compatible chat + embedding,
- * native DashScope async submit/poll image generation against
- * `/api/v1/services/aigc/*`. Image baseURL is derived per-call from the
- * user's chat baseURL by `buildDashScopeConfig`, so cn/intl/proxy hosts
- * track the user's provider config without hardcoded region URLs.
- */
-export const DashScopeExtension = ProviderExtension.create({
-  name: 'dashscope',
-  aliases: ['bailian'] as const,
-  supportsImageGeneration: true,
-  create: async (settings) => (await import('./custom/dashscope/dashscopeProvider')).createDashScopeProvider(settings)
-} as const satisfies ProviderExtensionConfig<DashScopeProviderSettings, ProviderV3, 'dashscope'>)
-
-/**
  * TokenHub (Tencent) Extension - OpenAI-compatible chat + embedding, image via the
  * `/v1/wand/*` endpoints (hunyuan / seedream sync, vidu submit+poll).
  */
@@ -431,7 +416,6 @@ export const extensions = [
   DoubaoExtension,
   OvmsExtension,
   ModelscopeExtension,
-  DashScopeExtension,
   TokenhubExtension,
   VoyageExtension,
   TogetherAIExtension,

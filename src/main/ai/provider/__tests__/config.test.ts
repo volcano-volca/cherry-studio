@@ -1161,53 +1161,6 @@ describe('providerToAiSdkConfig — builder dispatch matrix', () => {
       expect(radeonSettings).not.toHaveProperty('request_source')
     })
 
-    it('routes DashScope openai-compatible endpoints through DashScope config and preserves stream usage support', async () => {
-      const provider = makeProvider({
-        id: 'dashscope',
-        defaultChatEndpoint: ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS,
-        endpointConfigs: {
-          [ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS]: {
-            baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-            dialect: { streamOptions: true }
-          }
-        }
-      })
-      const model = makeModel({ providerId: 'dashscope', endpointTypes: [ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS] })
-
-      const config = await providerToAiSdkConfig(provider, model)
-      const settings = config.providerSettings as Record<string, unknown>
-
-      expect(config.providerId).toBe('dashscope')
-      expect(settings.includeUsage).toBe(true)
-      expect(settings.apiKey).toBe('sk-test-key')
-      expect(settings.name).toBeUndefined()
-      // A builder that installs no fetch of its own must default to the proxy-aware customFetch
-      // (the `settings.fetch ??= customFetch` in providerToAiSdkConfig — the point of this path).
-      expect(settings.fetch).toBe(customFetch)
-    })
-
-    it('routes a preset-derived DashScope instance (UUID id) through DashScope config', async () => {
-      // Same defect class as #18537: keyed on a bare `id === 'dashscope'`, a user-added
-      // instance stopped at providerId 'openai-compatible', which has no async image
-      // transport — its image models hit the generic OpenAICompatibleImageModel instead
-      // of DashScope's submit/poll one.
-      const provider = makeProvider({
-        id: 'd4e5f6-uuid',
-        presetProviderId: 'dashscope',
-        defaultChatEndpoint: ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS,
-        endpointConfigs: {
-          [ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS]: {
-            baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1'
-          }
-        }
-      })
-      const model = makeModel({ providerId: 'd4e5f6-uuid', endpointTypes: [ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS] })
-
-      const config = await providerToAiSdkConfig(provider, model)
-
-      expect(config.providerId).toBe('dashscope')
-    })
-
     it('routes ModelScope IMAGE models through ModelScope config (so the async submit/poll transport is used)', async () => {
       // modelscope chat declares adapterFamily 'openai-compatible', and an image model
       // resolves to that same fallback id — the override must force providerId 'modelscope'
@@ -1494,37 +1447,6 @@ describe('providerToAiSdkConfig — builder dispatch matrix', () => {
 
       const config = await providerToAiSdkConfig(provider, model)
       expect(config.providerId).toBe('openai-compatible')
-    })
-
-    it('keeps the DashScope web_extractor fetch appender on the Responses route', async () => {
-      vi.mocked(net.fetch).mockResolvedValue(new Response('{}', { status: 200 }))
-      const provider = makeProvider({
-        id: 'dashscope',
-        defaultChatEndpoint: ENDPOINT_TYPE.OPENAI_RESPONSES,
-        endpointConfigs: {
-          [ENDPOINT_TYPE.OPENAI_RESPONSES]: {
-            baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1/',
-            adapterFamily: 'openai'
-          }
-        }
-      })
-      const model = makeModel({
-        providerId: 'dashscope',
-        apiModelId: 'qwen3-max',
-        endpointTypes: [ENDPOINT_TYPE.OPENAI_RESPONSES]
-      })
-      const config = await providerToAiSdkConfig(provider, model)
-      expect(config.providerId).toBe('openai')
-      const settings = config.providerSettings as Record<string, unknown>
-      const fetch = settings.fetch as typeof globalThis.fetch
-
-      await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/responses', {
-        method: 'POST',
-        body: JSON.stringify({ tools: [{ type: 'web_search' }] })
-      })
-
-      const requestBody = JSON.parse(vi.mocked(net.fetch).mock.calls[0][1]?.body as string)
-      expect(requestBody.tools).toEqual([{ type: 'web_search' }, { type: 'web_extractor' }])
     })
 
     it('composes Doubao Responses request and response compatibility in its fetch wrapper', async () => {

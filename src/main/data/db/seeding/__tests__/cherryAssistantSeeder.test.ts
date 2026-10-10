@@ -59,7 +59,7 @@ describe('CherryAssistantSeeder', () => {
     const [agent] = builtinAgents(dbh.db)
     expect(agent).toMatchObject({
       type: 'claude-code',
-      name: 'Cherry Assistant',
+      name: 'Bimhu Assistant',
       description: '',
       instructions: '',
       model: null
@@ -87,7 +87,7 @@ describe('CherryAssistantSeeder', () => {
     new CherryAssistantSeeder().run(dbh.db)
 
     const [agent] = builtinAgents(dbh.db)
-    expect(agent.name).toBe('Cherry 小助手')
+    expect(agent.name).toBe('Bimhu小助手')
   })
 
   it('falls back to the English name when preferred system languages are unavailable', () => {
@@ -98,7 +98,7 @@ describe('CherryAssistantSeeder', () => {
     expect(() => new CherryAssistantSeeder().run(dbh.db)).not.toThrow()
 
     const [agent] = builtinAgents(dbh.db)
-    expect(agent.name).toBe('Cherry Assistant')
+    expect(agent.name).toBe('Bimhu Assistant')
   })
 
   it('preserves an existing permission mode when the seeder reruns', () => {

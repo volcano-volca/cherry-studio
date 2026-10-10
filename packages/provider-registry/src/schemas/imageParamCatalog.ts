@@ -145,7 +145,7 @@ function autoSnakeCase(key: string): string {
 /**
  * The vendor wire field name for a canonical param: the catalog `wire` override
  * when set, else the auto camelCase→snake_case form. This is the SINGLE source
- * of the canonical→wire rename — every flat-body provider (silicon / dashscope /
+ * of the canonical→wire rename — every flat-body provider (silicon /
  * dmxapi / aihubmix / …) derives its field name from here instead of repeating
  * the rename. Native params (`n`/`size`/`seed`/`aspectRatio`) are routed by
  * `AI_SDK_NATIVE_BINDINGS` and don't go through this.

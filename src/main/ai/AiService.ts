@@ -984,7 +984,7 @@ export class AiService extends BaseService {
     const { structured, vendorBag } = splitParamValues(params)
     const inputImages = request.inputImages ? await normalizeImageEditInputs(request.inputImages, signal) : undefined
 
-    // Async custom-provider transports (ppio / dashscope / modelscope /
+    // Async custom-provider transports (ppio / modelscope /
     // dmxapi-bespoke) run the submit/poll loop on the job system so it survives
     // a restart. Decide this before `resolveTransportFor` selects a serving key:
     // the job handler is the single selection owner for this path. A transport
@@ -1005,7 +1005,7 @@ export class AiService extends BaseService {
 
     // Vendor body (`providerOptions[providerId]`): the WireProfile engine maps the
     // canonical bag to each provider's wire — a registered profile for the
-    // OpenAI / google / dashscope / aihubmix / dmxapi families, else the diffusion
+    // OpenAI / google / aihubmix / dmxapi families, else the diffusion
     // catch-all (DEFAULT_DIFFUSION_REGISTRATION).
     const registration = WIRE_REGISTRY[sdkConfig.providerId] ?? DEFAULT_DIFFUSION_REGISTRATION
     const imageProviderOptions = buildVendorProviderOptions(sdkConfig.providerId, params, registration, vendorBag)

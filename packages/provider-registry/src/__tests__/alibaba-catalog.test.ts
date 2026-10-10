@@ -46,27 +46,4 @@ describe('Alibaba Qwen catalog', () => {
       ownedBy: 'alibaba'
     })
   })
-
-  it('maps DashScope to qwen3.8-flash with the Qwen3.8 effort contract', () => {
-    expect(loader.findOverride('dashscope', 'qwen3.8-flash')).toMatchObject({
-      apiModelId: 'qwen3.8-flash',
-      endpointTypes: ['openai-responses', 'openai-chat-completions'],
-      modelId: 'qwen3-8-flash',
-      reasoningContracts: {
-        'openai-chat-completions': {
-          support: {
-            controls: [{ default: 'xhigh', kind: 'effort', values: ['none', 'low', 'medium', 'xhigh'] }],
-            thinkingTokenLimits: { min: 0, max: 262144 }
-          }
-        },
-        'openai-responses': {
-          support: {
-            controls: [
-              { default: 'xhigh', kind: 'effort', values: ['none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'] }
-            ]
-          }
-        }
-      }
-    })
-  })
 })

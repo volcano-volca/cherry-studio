@@ -23,7 +23,7 @@ const logger = loggerService.withContext('ImageGenerationJobHandler')
 
 /**
  * Async image-generation handler for custom-provider submit/poll transports
- * (ppio / dashscope / modelscope / dmxapi-bespoke). Mirrors
+ * (ppio / modelscope / dmxapi-bespoke). Mirrors
  * `imageGenerationModel.doGenerate` but owns the submit/poll loop.
  *
  * Secrets are never persisted — the apiKey is re-read from provider config on

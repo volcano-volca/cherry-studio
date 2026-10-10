@@ -40,51 +40,6 @@
           "vendors": ["anthropic", "gemini"]
         }
       ]
-    },
-    {
-      "availableInEditions": ["global", "cn"],
-      "defaultChatEndpoint": "openai-chat-completions",
-      "description": "Bailian - AI model provider",
-      "endpointConfigs": {
-        "anthropic-messages": {
-          "adapterFamily": "anthropic",
-          "baseUrl": "https://dashscope.aliyuncs.com/apps/anthropic"
-        },
-        "openai-chat-completions": {
-          "adapterFamily": "openai-compatible",
-          "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1/",
-          "reasoningFormat": {
-            "type": "openai-chat"
-          }
-        },
-        "openai-responses": {
-          "adapterFamily": "openai",
-          "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1/",
-          "reasoningFormat": {
-            "type": "openai-responses"
-          }
-        }
-      },
-      "id": "dashscope",
-      "metadata": {
-        "website": {
-          "apiKey": "https://bailian.console.aliyun.com/?tab=model#/api-key",
-          "docs": "https://help.aliyun.com/zh/model-studio/getting-started/",
-          "models": "https://bailian.console.aliyun.com/?tab=model#/model-market",
-          "official": "https://www.aliyun.com/product/bailian"
-        }
-      },
-      "name": "Bailian",
-      "serverTools": [
-        {
-          "id": "web-search",
-          "modelScope": "model-dependent"
-        },
-        {
-          "id": "url-context",
-          "modelScope": "model-dependent"
-        }
-      ]
     }
   ],
   "version": "0f1976e7a79f267d"
