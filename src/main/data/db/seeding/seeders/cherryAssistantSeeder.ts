@@ -32,7 +32,7 @@ export class CherryAssistantSeeder implements ISeeder {
   // Version 1 journaled the old "empty library only" eligibility decision. Version 2
   // rolls the assistant out to existing libraries; the persisted builtin identity still
   // prevents recreating a user-deleted assistant or overwriting user choices.
-  readonly version = '2'
+  readonly version = '3'
 
   run(db: DbType): void {
     db.transaction((tx) => {

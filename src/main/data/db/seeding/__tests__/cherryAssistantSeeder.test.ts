@@ -34,7 +34,7 @@ describe('CherryAssistantSeeder', () => {
   })
 
   it('uses a new rollout version after the version 1 eligibility decision', () => {
-    expect(new CherryAssistantSeeder().version).toBe('2')
+    expect(new CherryAssistantSeeder().version).toBe('3')
   })
 
   function insertOrdinaryAgent(): string {
@@ -120,7 +120,7 @@ describe('CherryAssistantSeeder', () => {
     const [updated] = builtinAgents(dbh.db)
     expect(updated.configuration).toMatchObject({ permission_mode: 'default' })
     const [journal] = dbh.db.select().from(appStateTable).where(eq(appStateTable.key, 'seed:cherryAssistant')).all()
-    expect(journal?.value).toMatchObject({ version: '2' })
+    expect(journal?.value).toMatchObject({ version: '3' })
   })
 
   it('adds Cherry Assistant after a version 1 skip in an existing library and journals the rollout', () => {
@@ -221,7 +221,7 @@ describe('CherryAssistantSeeder', () => {
     expect(dbh.db.select().from(agentTable).where(isNull(agentTable.deletedAt)).all()).toHaveLength(0)
     expect(builtinAgents(dbh.db)).toHaveLength(1)
     const [journal] = dbh.db.select().from(appStateTable).where(eq(appStateTable.key, 'seed:cherryAssistant')).all()
-    expect(journal?.value).toMatchObject({ version: '2' })
+    expect(journal?.value).toMatchObject({ version: '3' })
   })
 
   it('falls back to a null model when the CherryAI default model is absent', () => {
