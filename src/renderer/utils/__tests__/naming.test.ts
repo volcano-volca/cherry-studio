@@ -351,7 +351,7 @@ describe('naming', () => {
   describe('getFancyProviderName', () => {
     it('should get i18n name for system provider', () => {
       const mockSystemProvider: SystemProvider = {
-        id: 'dashscope',
+        id: 'bimhu',
         type: 'openai',
         name: 'whatever',
         apiHost: 'whatever',
@@ -360,7 +360,7 @@ describe('naming', () => {
         isSystem: true
       }
       // beforeAll 已将 i18n 切到 en-US
-      expect(getFancyProviderName(mockSystemProvider)).toBe('Alibaba Cloud')
+      expect(getFancyProviderName(mockSystemProvider)).toBe('bimhu')
     })
 
     it('should get name for custom provider', () => {

@@ -31,7 +31,7 @@ describe('match', () => {
 
   const sysProvider: SystemProvider = {
     ...provider,
-    id: 'dashscope',
+    id: 'bimhu',
     name: 'doesnt matter',
     isSystem: true
   } as const
@@ -92,8 +92,8 @@ describe('match', () => {
     })
 
     it('should match i18n name, id, and name for system provider', () => {
-      expect(matchKeywordsInProvider('dashscope', sysProvider)).toBe(true)
-      expect(matchKeywordsInProvider('Alibaba', sysProvider)).toBe(true)
+      expect(matchKeywordsInProvider('bimhu', sysProvider)).toBe(true)
+      expect(matchKeywordsInProvider('Bimhu', sysProvider)).toBe(true)
       // system provider 现在也可以通过 name 字段匹配
       expect(matchKeywordsInProvider('doesnt matter', sysProvider)).toBe(true)
     })
