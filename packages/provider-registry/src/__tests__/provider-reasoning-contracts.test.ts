@@ -2,12 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import { PROVIDERS } from '../providers'
 
-const provider = (providerId: string) => {
-  const result = PROVIDERS.find(({ id }) => id === providerId)
-  if (!result) throw new Error(`Missing provider: ${providerId}`)
-  return result
-}
-
 describe('provider reasoning contracts', () => {
   // `auto` is the one selection no model validates, so the serializer projects a profile's automatic
   // tier onto the model's declared efforts. A tier buried in a literal operation is invisible to it
