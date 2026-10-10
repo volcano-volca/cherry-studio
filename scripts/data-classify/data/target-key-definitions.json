@@ -57,9 +57,9 @@
     {
       "targetKey": "app.onboarding.provider_setup.status",
       "type": "PreferenceTypes.OnboardingProviderSetupStatus",
-      "defaultValue": "pending",
+      "defaultValue": "skipped",
       "status": "classified",
-      "description": "Status of the main-window first-run provider setup onboarding flow"
+      "description": "Status of the main-window first-run provider setup onboarding flow (BimhuChat: onboarding is skipped, app opens directly)"
     },
     {
       "targetKey": "app.logs.retention_days",
