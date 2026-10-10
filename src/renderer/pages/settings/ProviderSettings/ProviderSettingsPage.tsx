@@ -55,10 +55,6 @@ function ProviderSettingsContent({ rawProviders }: ProviderSettingsContentProps)
     startTransition(() => setSelectedProviderIdState(providerId))
   }, [])
 
-  const handleCustomProviderCreated = useCallback((providerId: string, hasApiKey: boolean) => {
-    setPendingApiSetup({ providerId, initialStep: hasApiKey ? 'models' : 'api-key' })
-  }, [])
-
   const handleApiSetupClosed = useCallback((providerId: string) => {
     setPendingApiSetup((current) => (current?.providerId === providerId ? null : current))
   }, [])
