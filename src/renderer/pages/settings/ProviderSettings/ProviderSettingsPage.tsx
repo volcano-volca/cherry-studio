@@ -12,7 +12,6 @@ import type { Provider } from '@shared/data/types/provider'
 
 import type { ProviderApiSetupInitialStep } from './ConnectionSettings/ProviderApiSetupDialog'
 import { useProviderDeepLinkImport } from './hooks/useProviderDeepLinkImport'
-import { ProviderList } from './ProviderList'
 import ProviderSetting from './ProviderSetting'
 
 interface PendingApiSetup {
@@ -38,7 +37,6 @@ function ProviderSettingsContent({ rawProviders }: ProviderSettingsContentProps)
 
   const providers = useMemo(() => (Array.isArray(rawProviders) ? rawProviders : []), [rawProviders])
   const visibleProviders = useMemo(() => providers.filter(isProviderSettingsListVisibleProvider), [providers])
-  const filterModeHint = search.filter === 'agent' ? 'agent' : undefined
 
   useEffect(() => {
     setLastSelectedProviderIdRef.current = setLastSelectedProviderId
@@ -100,13 +98,16 @@ function ProviderSettingsContent({ rawProviders }: ProviderSettingsContentProps)
     // A pending ?id= deep link owns the initial selection while providers
     // load; the fallback must not race it to visibleProviders[0]
     if (search.id) return
-    if (!selectedProviderId && visibleProviders[0]) {
-      setSelectedProviderId(visibleProviders[0].id)
+    // BimhuChat: prefer the Bimhu provider
+    const bimhuProvider = visibleProviders.find((p) => p.id === 'bimhu')
+    const fallbackProvider = bimhuProvider ?? visibleProviders[0]
+    if (!selectedProviderId && fallbackProvider) {
+      setSelectedProviderId(fallbackProvider.id)
       return
     }
 
     if (selectedProviderId && !visibleProviders.some((provider) => provider.id === selectedProviderId)) {
-      setSelectedProviderId(visibleProviders[0]?.id)
+      setSelectedProviderId(fallbackProvider?.id)
     }
   }, [search.id, selectedProviderId, setSelectedProviderId, visibleProviders])
 
@@ -117,12 +118,7 @@ function ProviderSettingsContent({ rawProviders }: ProviderSettingsContentProps)
 
   return (
     <div className="relative flex h-full min-h-0 w-full min-w-0 overflow-hidden">
-      <ProviderList
-        selectedProviderId={selectedProviderId}
-        filterModeHint={filterModeHint}
-        onSelectProvider={setSelectedProviderId}
-        onCustomProviderCreated={handleCustomProviderCreated}
-      />
+      {/* BimhuChat: single-provider app, skip the provider list and show Bimhu directly */}
       {selectedProvider && (
         <ProviderSetting
           providerId={selectedProvider.id}
